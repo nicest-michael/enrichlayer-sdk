@@ -59,12 +59,13 @@ export class ApiClient {
       const body = await response.text();
 
       if (!response.ok) {
-        let detail = body;
+        let detail: string;
         try {
           const parsed = JSON.parse(body);
-          detail = parsed.message || parsed.error || body;
+          detail = parsed.message || parsed.error || parsed.description || body;
         } catch {
-          // use raw body
+          // Non-JSON response (e.g. Cloudflare HTML error page) — extract a clean message
+          detail = response.statusText || `HTTP ${response.status}`;
         }
         throw new EnrichLayerError(
           `Enrich Layer API error ${response.status}: ${detail}`,

@@ -1,4 +1,4 @@
-import { ApiClient } from "../client.js";
+import { ApiClient, EnrichLayerError } from "../client.js";
 import { ENDPOINTS } from "../endpoints.js";
 import {
   mapCompany,
@@ -62,6 +62,14 @@ class CompanyNamespace {
       enrich_profile: "enrich",
     })) as Record<string, unknown>;
 
+    const profile = resolved.profile as Record<string, unknown> | undefined;
+    if (!resolved.url && (!profile || !profile.name)) {
+      throw new EnrichLayerError(
+        `Company not found for domain: ${params.domain}`,
+        404,
+      );
+    }
+
     return mapCompany(resolved);
   }
 }
@@ -84,6 +92,14 @@ class PersonNamespace {
         enrich_profile: "enrich",
       },
     )) as Record<string, unknown>;
+
+    const profile = resolved.profile as Record<string, unknown> | undefined;
+    if (!resolved.url && (!profile || !profile.first_name)) {
+      throw new EnrichLayerError(
+        `Person not found for email: ${params.email}`,
+        404,
+      );
+    }
 
     return mapPerson(resolved, params.email);
   }
@@ -168,6 +184,14 @@ class NameToDomainNamespace {
       company_name: params.name,
       enrich_profile: "enrich",
     })) as Record<string, unknown>;
+
+    const profile = resolved.profile as Record<string, unknown> | undefined;
+    if (!resolved.url && (!profile || !profile.name)) {
+      throw new EnrichLayerError(
+        `Company not found for name: ${params.name}`,
+        404,
+      );
+    }
 
     return mapNameToDomain(resolved);
   }
